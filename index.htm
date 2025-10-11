@@ -1,0 +1,44 @@
+<!doctypehtml><html lang=en><meta charset=UTF-8><title>Encode/Decode Level</title><script src=https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js></script><style>body{font-family:Arial,sans-serif;margin:30px}textarea{width:100%;height:120px;font-family:monospace}pre{background-color:#f4f4f4;padding:10px;white-space:pre-wrap;word-break:break-word}label{font-weight:700}</style><h1>Level Encoder / Decoder</h1><label><input type=radio name=mode onchange=toggleMode() value=encode checked> Encode</label> <label><input type=radio name=mode onchange=toggleMode() value=decode> Decode</label><br><br><label><input type=checkbox id=official> Is Official Level?</label><br><br><textarea id=input placeholder="Enter level data or level string here..."></textarea><br><br><button onclick=process()>Run</button><h3>Output:</h3><pre id=output></pre><script>function base64UrlEncode(buffer) {
+      const base64 = btoa(String.fromCharCode(...buffer));
+      return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function base64UrlDecode(str) {
+      const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
+      const base64 = str.replace(/-/g, '+').replace(/_/g, '/') + pad;
+      return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    }
+
+    function process() {
+      const input = document.getElementById('input').value.trim();
+      const isOfficial = document.getElementById('official').checked;
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const outputEl = document.getElementById('output');
+      outputEl.textContent = "";
+
+      try {
+        if (mode === 'encode') {
+          const gzipped = pako.gzip(input);
+          let encoded = base64UrlEncode(gzipped);
+          if (isOfficial) {
+            encoded = encoded.substring(13);
+          }
+          outputEl.textContent = encoded;
+        } else if (mode === 'decode') {
+          let data = input;
+          if (isOfficial) {
+            data = 'H4sIAAAAAAAAA' + data;
+          }
+          const decoded = base64UrlDecode(data);
+          const decompressed = pako.inflate(decoded, { to: 'string' });
+          outputEl.textContent = decompressed;
+        }
+      } catch (err) {
+        outputEl.textContent = "Error: " + err.message;
+      }
+    }
+
+    function toggleMode() {
+      document.getElementById('output').textContent = "";
+      document.getElementById('input').value = "";
+    }</script>
