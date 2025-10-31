@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>YT FBF</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 14px; color:#111; background:#fff; }
+  #player { width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; margin-bottom:12px; }
+  input, button { font-size:16px; padding:10px; border-radius:6px; border:1px solid #ccc; }
+  button { background:#0078ff; color:white; border:none; font-weight:600; }
+  button:active { background:#005fcc; }
+  .row, .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
+  .counter { background:#f2f2f7; padding:10px 14px; border-radius:8px; flex-grow:1; text-align:center; }
+  .counter .big { font-weight:700; font-size:18px; }
+  .small { font-size:14px; color:#555; }
+  input[type="number"] { width:90px; }
+  input[type="text"] { flex:1; min-width:180px; }
+  .footer { font-size:13px; color:#666; margin-top:10px; line-height:1.4; }
+  .status { margin-top:8px; font-size:14px; }
+</style>
+</head>
+<body>
+  <h2>YouTube Frame-by-Frame Player</h2>
+
+  <div class="row">
+    <input id="videoInput" type="text" placeholder="YouTube URL or ID" />
+    <button id="loadBtn">Load</button>
+  </div>
+
+  <div id="player">Loading YouTube player…</div>
+
+  <div class="controls">
+    <button id="playPauseBtn">▶ Play / ❚❚ Pause</button>
+    <button id="stepBackBtn">◀ -1 Frame</button>
+    <button id="stepFwdBtn">+1 Frame ▶</button>
+  </div>
+
+  <div class="controls">
+    <input id="fpsInput" type="number" min="1" max="60" value="30" />
+    <button id="setFpsBtn">Set FPS</button>
+    <input id="jumpFrameInput" type="number" placeholder="frame #" min="0" />
+    <button id="jumpBtn">Jump</button>
+  </div>
+
+  <div class="counter">
+    <div class="big" id="frameDisplay">Frame: —</div>
+    <div class="small">Time: <span id="timeDisplay">—</span> s • FPS: <span id="fpsDisplay">30</span></div>
+    <div class="small">Duration: <span id="durationDisplay">—</span> s • State: <span id="stateDisplay">—</span></div>
+  </div>
+
+
+<script>
+  // Parse YouTube video ID
+  function parseYouTubeId(input) {
+    if (!input) return null;
+    input = input.trim();
+    const idMatch = input.match(/[A-Za-z0-9_-]{11,}/);
+    if (!input.includes('http') && idMatch) return idMatch[0];
+    try {
+      const u = new URL(input);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.searchParams.get('v')) return u.searchParams.get('v');
+      const m = u.pathname.match(/embed\/([A-Za-z0-9_-]+)/);
+      if (m) return m[1];
+    } catch {}
+    return idMatch ? idMatch[0] : null;
+  }
+
+  // Load YouTube IFrame API
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+
+  let player, fps = 30, frameDuration = 1/30;
+  let duration = 0;
+
+  const qs = id => document.getElementById(id);
+
+  function onYouTubeIframeAPIReady() {
+    qs("stateDisplay").textContent = "API ready";
+  }
+  window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+  function createPlayer(videoId) {
+    if (player) player.destroy();
+    player = new YT.Player('player', {
+      videoId,
+      playerVars: { modestbranding:1, rel:0, controls:1 },
+      events: {
+        onReady: () => {
+          duration = player.getDuration() || 0;
+          qs("durationDisplay").textContent = duration.toFixed(2);
+          qs("stateDisplay").textContent = "Ready";
+        },
+        onStateChange: (e) => {
+          const s = e.data;
+          if (s === 1) qs("stateDisplay").textContent = "Playing";
+          else if (s === 2) qs("stateDisplay").textContent = "Paused";
+          else if (s === 0) qs("stateDisplay").textContent = "Ended";
+        }
+      }
+    });
+  }
+
+  function updateDisplay() {
+    if (!player) return;
+    const t = player.getCurrentTime();
+    const frame = Math.floor(t * fps);
+    qs("frameDisplay").textContent = `Frame: ${frame}`;
+    qs("timeDisplay").textContent = t.toFixed(4);
+    qs("fpsDisplay").textContent = fps;
+  }
+
+  function stepFrames(n) {
+    if (!player) return;
+    const t = player.getCurrentTime();
+    const target = Math.max(0, t + n * frameDuration);
+    player.pauseVideo();
+    player.seekTo(target, true);
+    setTimeout(updateDisplay, 200);
+  }
+
+  function togglePlayPause() {
+    if (!player) return;
+    const state = player.getPlayerState();
+    if (state === 1) player.pauseVideo();
+    else player.playVideo();
+  }
+
+  qs("loadBtn").onclick = () => {
+    const id = parseYouTubeId(qs("videoInput").value);
+    if (!id) return alert("Invalid YouTube link or ID");
+    createPlayer(id);
+  };
+  qs("stepBackBtn").onclick = () => stepFrames(-1);
+  qs("stepFwdBtn").onclick = () => stepFrames(1);
+  qs("playPauseBtn").onclick = togglePlayPause;
+  qs("setFpsBtn").onclick = () => {
+    let v = parseFloat(qs("fpsInput").value) || 30;
+    v = Math.max(1, Math.min(60, v));
+    fps = v;
+    frameDuration = 1/fps;
+    updateDisplay();
+  };
+  qs("jumpBtn").onclick = () => {
+    const f = parseInt(qs("jumpFrameInput").value);
+    if (isNaN(f)) return;
+    player.pauseVideo();
+    player.seekTo(f / fps, true);
+    setTimeout(updateDisplay, 200);
+  };
+
+  // Update loop for time/frame counter
+  setInterval(updateDisplay, 250);
+</script>
+</body>
+</html>
