@@ -211,9 +211,9 @@ qs('applyFps').onclick=()=>{
 }
 
 // Segments
-function addSegment(){
+function addSegment(name="Segment"){
   segCounter++
-  const seg={id:'s'+Date.now()+'_'+segCounter,name:`Segment ${segCounter}`,start:null,end:null}
+  const seg={id:'s'+Date.now()+'_'+segCounter,name:`${name} ${segCounter}`,start:null,end:null}
   segments.push(seg)
   renderSegments();updateTotals()
 }
@@ -244,7 +244,6 @@ Start: <strong id="${s.id}-start">${s.start==null?'—':s.start+' ('+msToMMSSms(
     segmentsContainer.appendChild(el)
   })
   attachSegmentListeners()
-  qs('segmentsCount').textContent=segments.length
 }
 
 function attachSegmentListeners(){
@@ -289,7 +288,7 @@ function generateModNote(){
   qs('modNoteOutput').value=lines.join('\n\n')+`\n\nFinal Time: ${finalTime}`
 }
 
-qs('addSegmentBtn').onclick=addSegment
+qs('addSegmentBtn').onclick=()=>addSegment("Segment")
 qs('genBtn').onclick=()=>{updateTotals();generateModNote()}
 qs('copyBtn').onclick=()=>{const t=qs('modNoteOutput').value;if(!t)return alert('Nothing to copy');navigator.clipboard.writeText(t).then(()=>{qs('copyBtn').textContent='Copied!';setTimeout(()=>qs('copyBtn').textContent='Copy',1200)})}
 qs('clearAll').onclick=()=>{if(!confirm('Clear all segments?'))return;segments=[];segCounter=0;renderSegments();qs('modNoteOutput').value='';updateTotals()}
@@ -297,6 +296,11 @@ qs('clearAll').onclick=()=>{if(!confirm('Clear all segments?'))return;segments=[
 setInterval(updateDisplay,250)
 
 function escapeHtml(s){return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// ✅ Initialize baseplate segment
+window.addEventListener('DOMContentLoaded',()=>{
+  addSegment("Base Segment")
+})
 </script>
 </body>
 </html>
