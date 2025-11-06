@@ -2,31 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>YouTube FBF Segments</title>
 <style>
-  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;margin:16px;color:#e5e5e5;background:#121212}
-  h2{margin-bottom:16px;color:#fff}
-  #player{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;margin-bottom:12px;box-shadow:0 0 8px rgba(0,0,0,.6)}
-  input,button{font-size:15px;padding:9px 12px;border-radius:6px;border:1px solid #333;outline:none}
-  input{background:#1e1e1e;color:#eee}
-  input::placeholder{color:#777}
-  button{background:#0078ff;color:#fff;border:none;font-weight:600;cursor:pointer;transition:background-color .2s,transform .1s}
-  button:hover{background:#2088ff}
-  button:active{transform:scale(.97)}
-  #markStartBtn{background-color:#d9534f}
-  #markStartBtn:hover{background-color:#c9302c}
-  #markEndBtn{background-color:#5cb85c}
-  #markEndBtn:hover{background-color:#449d44}
-  .row,.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-  .counter{background:#1c1c1c;padding:12px 16px;border-radius:8px;flex-grow:1;border:1px solid #2a2a2a;margin-bottom:10px}
-  .counter .big{font-weight:700;font-size:18px;color:#fff}
-  .small{font-size:14px;color:#aaa}
-  #segments{margin-top:14px}
-  .segment{background:#1a1a1a;border:1px solid #2a2a2a;padding:10px;border-radius:8px;margin-bottom:8px}
-  .segment input[type=text]{width:180px}
-  textarea{width:100%;height:160px;background:#1e1e1e;color:#eee;border:1px solid #333;border-radius:6px;padding:8px;margin-top:10px;font-size:14px}
-  .total{font-weight:700;color:#fff;margin-top:8px}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;margin:16px;color:#e5e5e5;background:#121212}
+h2{margin-bottom:16px;color:#fff}
+#player{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;margin-bottom:12px;box-shadow:0 0 8px rgba(0,0,0,.6)}
+input,button{font-size:15px;padding:9px 12px;border-radius:6px;border:1px solid #333;outline:none}
+input{background:#1e1e1e;color:#eee}
+input::placeholder{color:#777}
+button{background:#0078ff;color:#fff;border:none;font-weight:600;cursor:pointer;transition:background-color .2s,transform .1s}
+button:hover{background:#2088ff}
+button:active{transform:scale(.97)}
+#markStartBtn{background-color:#d9534f}
+#markStartBtn:hover{background-color:#c9302c}
+#markEndBtn{background-color:#5cb85c}
+#markEndBtn:hover{background-color:#449d44}
+.row,.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.counter{background:#1c1c1c;padding:12px 16px;border-radius:8px;flex-grow:1;border:1px solid #2a2a2a;margin-bottom:10px}
+.counter .big{font-weight:700;font-size:18px;color:#fff}
+.small{font-size:14px;color:#aaa}
+#segments{margin-top:14px}
+.segment{background:#1a1a1a;border:1px solid #2a2a2a;padding:10px;border-radius:8px;margin-bottom:8px}
+.segment input[type=text]{width:180px}
+textarea{width:100%;height:160px;background:#1e1e1e;color:#eee;border:1px solid #333;border-radius:6px;padding:8px;margin-top:10px;font-size:14px}
+.total{font-weight:700;color:#fff;margin-top:8px}
 </style>
 </head>
 <body>
@@ -71,10 +71,10 @@
 <script>
 function parseYouTubeId(i){if(!i)return null;i=i.trim();const m=i.match(/[A-Za-z0-9_-]{11,}/);if(!i.includes("http")&&m)return m[0];try{const u=new URL(i);if(u.hostname.includes("youtu.be"))return u.pathname.slice(1);if(u.searchParams.get("v"))return u.searchParams.get("v");const x=u.pathname.match(/embed\/([A-Za-z0-9_-]+)/);if(x)return x[1]}catch{}return m?m[0]:null}
 function formatTimestamp(s){if(isNaN(s))return"—";const t=Math.ceil(s*1000);const ms=t%1000;const ts=Math.floor(t/1000);const sec=ts%60;const tm=Math.floor(ts/60);const min=tm%60;const th=Math.floor(tm/60);const hr=th%24;const d=Math.floor(th/24);const pad=(n,z=2)=>String(n).padStart(z,"0");return`${pad(d)}:${pad(hr)}:${pad(min)}:${pad(sec)}.${pad(ms,3)}`}
-const tag=document.createElement("script");tag.src="https://www.youtube.com/iframe_api";document.head.appendChild(tag)
 let player,fps=30,frameDuration=1/30,duration=0;const qs=id=>document.getElementById(id)
-function onYouTubeIframeAPIReady(){qs("stateDisplay").textContent="API ready"}window.onYouTubeIframeAPIReady=onYouTubeIframeAPIReady
-function createPlayer(id){if(player)player.destroy();player=new YT.Player("player",{videoId:id,playerVars:{modestbranding:1,rel:0,controls:1},events:{onReady:()=>{duration=player.getDuration()||0;qs("durationDisplay").textContent=formatTimestamp(duration);qs("stateDisplay").textContent="Ready"},onStateChange:e=>{const s=e.data;if(s===1)qs("stateDisplay").textContent="Playing";else if(s===2)qs("stateDisplay").textContent="Paused";else if(s===0)qs("stateDisplay").textContent="Ended"}}})}
+window.onYouTubeIframeAPIReady=function(){qs("stateDisplay").textContent="API ready"}
+function ensureAPI(cb){if(window.YT&&YT.Player){cb()}else{const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s);const i=setInterval(()=>{if(window.YT&&YT.Player){clearInterval(i);cb()}},100)}}
+function createPlayer(id){ensureAPI(()=>{if(player)player.destroy();player=new YT.Player("player",{videoId:id,playerVars:{modestbranding:1,rel:0,controls:1},events:{onReady:()=>{duration=player.getDuration()||0;qs("durationDisplay").textContent=formatTimestamp(duration);qs("stateDisplay").textContent="Ready"},onStateChange:e=>{const s=e.data;if(s===1)qs("stateDisplay").textContent="Playing";else if(s===2)qs("stateDisplay").textContent="Paused";else if(s===0)qs("stateDisplay").textContent="Ended"}}})})}
 function updateDisplay(){if(!player)return;const t=player.getCurrentTime();const f=Math.floor(t*fps);qs("frameDisplay").textContent=`Frame: ${f}`;qs("timeDisplay").textContent=formatTimestamp(t);qs("fpsDisplay").textContent=fps}
 function stepFrames(n){if(!player)return;const t=player.getCurrentTime();const tgt=Math.max(0,t+n*frameDuration);player.pauseVideo();player.seekTo(tgt,true);setTimeout(updateDisplay,200)}
 function togglePlayPause(){if(!player)return;const s=player.getPlayerState();if(s===1)player.pauseVideo();else player.playVideo()}
@@ -97,4 +97,10 @@ function markSegEnd(id){const s=segments.find(x=>x.id===id);if(!s||!player)retur
 function renderSegments(){const c=qs("segments");c.innerHTML="";let totalFrames=0;segments.forEach(seg=>{const d=document.createElement("div");d.className="segment";const diff=seg.start!=null&&seg.end!=null?Math.abs(seg.end-seg.start):null;if(diff)totalFrames+=diff;d.innerHTML=`<div><input type="text" id="name-${seg.id}" value="${seg.name}"/> <button onclick="markSegStart(${seg.id})" style="background:#d9534f">Mark Start</button> <button onclick="markSegEnd(${seg.id})" style="background:#5cb85c">Mark End</button></div>
 <div class="small">Start: ${seg.start!=null?seg.start+" ("+formatTimestamp(seg.start/fps)+")":"—"} • End: ${seg.end!=null?seg.end+" ("+formatTimestamp(seg.end/fps)+")":"—"}</div>
 <div class="small">Length: ${diff?diff+" frames ("+formatTimestamp(diff/fps)+")":"—"}</div>`;c.appendChild(d)});qs("totalDisplay").textContent=`Total: ${totalFrames} frames (${formatTimestamp(totalFrames/fps)})`}
-function generateModNote(){let out="",totalFrames=0;const framesOnly=qs("frameModeToggle").checked;segments.forEach((seg,i)=>{const n=qs(`name-${seg.id}`).value.trim()||`Segment ${i+1}`;if(seg.start==null||seg.end==null)return;const diff=Math.abs(seg.end-seg.start);totalFrames+=diff;if(framesOnly){out+=`${n}: Start frame: ${seg.start}, End frame: ${seg.end}, Frames: ${diff}, FPS: ${fps}\n`}else{out+=
+function generateModNote(){let out="",totalFrames=0;const framesOnly=qs("frameModeToggle").checked;segments.forEach((seg,i)=>{const n=qs(`name-${seg.id}`).value.trim()||`Segment ${i+1}`;if(seg.start==null||seg.end==null)return;const diff=Math.abs(seg.end-seg.start);totalFrames+=diff;if(framesOnly){out+=`${n}: Start frame: ${seg.start}, End frame: ${seg.end}, Frames: ${diff}, FPS: ${fps}\n`}else{out+=`${n}: Start time: ${(seg.start/fps).toFixed(3)}, End time: ${(seg.end/fps).toFixed(3)} with a framerate of ${fps}, Time: ${(diff/fps).toFixed(3)}\n`}});if(framesOnly){out+=`\nFinal Time: ${totalFrames} frames`}else{out+=`\nFinal Time: ${(totalFrames/fps).toFixed(3)}s`}qs("modNoteOutput").value=out}
+qs("addSegmentBtn").onclick=addSegment
+qs("generateBtn").onclick=generateModNote
+setInterval(updateDisplay,250)
+</script>
+</body>
+</html>
