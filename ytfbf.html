@@ -5,19 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>YouTube Frame-by-Frame Player</title>
 <style>
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 14px; color:#111; background:#fff; }
-  #player { width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; margin-bottom:12px; }
-  input, button { font-size:16px; padding:10px; border-radius:6px; border:1px solid #ccc; }
-  button { background:#0078ff; color:white; border:none; font-weight:600; cursor:pointer; }
-  button:active { background:#005fcc; }
-  .row, .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
-  .counter { background:#f2f2f7; padding:10px 14px; border-radius:8px; flex-grow:1; text-align:center; }
-  .counter .big { font-weight:700; font-size:18px; }
-  .small { font-size:14px; color:#555; }
-  input[type="number"] { width:90px; }
-  input[type="text"] { flex:1; min-width:180px; }
-  .footer { font-size:13px; color:#666; margin-top:10px; line-height:1.4; }
-  .status { margin-top:8px; font-size:14px; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    margin: 14px;
+    color: #111;
+    background: #f8f9fa;
+  }
+
+  h2 {
+    margin-bottom: 16px;
+  }
+
+  #player {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .row, .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  input, button {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    outline: none;
+  }
+
+  input[type="text"], input[type="number"] {
+    /* keep sizes consistent */
+  }
+
+  button {
+    background: #0078ff;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:active {
+    background-color: #005fcc;
+  }
+
+  /* custom colored Mark buttons */
+  #markStartBtn {
+    background-color: #d9534f; /* red-ish */
+    border: none;
+  }
+  #markStartBtn:hover {
+    background-color: #c9302c;
+  }
+
+  #markEndBtn {
+    background-color: #5cb85c; /* green-ish */
+    border: none;
+  }
+  #markEndBtn:hover {
+    background-color: #449d44;
+  }
+
+  .counter {
+    background: #ffffff;
+    /* or lighter shade */
+    padding: 10px 14px;
+    border-radius: 8px;
+    flex-grow: 1;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+
+  .counter .big {
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .small {
+    font-size: 14px;
+    color: #555;
+  }
+
+  .footer {
+    font-size: 13px;
+    color: #666;
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  input[type="number"] {
+    width: 90px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 180px;
+  }
 </style>
 </head>
 <body>
@@ -70,7 +160,7 @@
   </div>
 
 <script>
-  // Parse YouTube video ID
+  // (same JavaScript as before—no changes needed to logic)
   function parseYouTubeId(input) {
     if (!input) return null;
     input = input.trim();
@@ -86,7 +176,6 @@
     return idMatch ? idMatch[0] : null;
   }
 
-  // Load YouTube IFrame API
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
@@ -172,7 +261,6 @@
     }
   }
 
-  // Button bindings
   qs("loadBtn").onclick = () => {
     const id = parseYouTubeId(qs("videoInput").value);
     if (!id) return alert("Invalid YouTube link or ID");
@@ -199,7 +287,6 @@
     setTimeout(updateDisplay, 200);
   };
 
-  // Extended frame step buttons
   qs("back5Btn").onclick = () => stepFrames(-5);
   qs("back10Btn").onclick = () => stepFrames(-10);
   qs("back15Btn").onclick = () => stepFrames(-15);
@@ -210,7 +297,6 @@
   qs("markStartBtn").onclick = markStart;
   qs("markEndBtn").onclick = markEnd;
 
-  // Update loop for time/frame counter
   setInterval(updateDisplay, 250);
 </script>
 </body>
