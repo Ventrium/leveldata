@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>YT FBF</title>
+<title>YouTube Frame-by-Frame Player</title>
 <style>
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 14px; color:#111; background:#fff; }
   #player { width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; margin-bottom:12px; }
   input, button { font-size:16px; padding:10px; border-radius:6px; border:1px solid #ccc; }
-  button { background:#0078ff; color:white; border:none; font-weight:600; }
+  button { background:#0078ff; color:white; border:none; font-weight:600; cursor:pointer; }
   button:active { background:#005fcc; }
   .row, .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
   .counter { background:#f2f2f7; padding:10px 14px; border-radius:8px; flex-grow:1; text-align:center; }
@@ -37,10 +37,24 @@
   </div>
 
   <div class="controls">
+    <button id="back5Btn">◀ -5</button>
+    <button id="back10Btn">◀ -10</button>
+    <button id="back15Btn">◀ -15</button>
+    <button id="fwd5Btn">+5 ▶</button>
+    <button id="fwd10Btn">+10 ▶</button>
+    <button id="fwd15Btn">+15 ▶</button>
+  </div>
+
+  <div class="controls">
     <input id="fpsInput" type="number" min="1" max="60" value="30" />
     <button id="setFpsBtn">Set FPS</button>
     <input id="jumpFrameInput" type="number" placeholder="frame #" min="0" />
     <button id="jumpBtn">Jump</button>
+  </div>
+
+  <div class="controls">
+    <button id="markStartBtn">Mark Start</button>
+    <button id="markEndBtn">Mark End</button>
   </div>
 
   <div class="counter">
@@ -49,6 +63,11 @@
     <div class="small">Duration: <span id="durationDisplay">—</span> s • State: <span id="stateDisplay">—</span></div>
   </div>
 
+  <div class="counter">
+    <div>Start: <span id="startDisplay">—</span></div>
+    <div>End: <span id="endDisplay">—</span></div>
+    <div><strong>Difference:</strong> <span id="diffDisplay">—</span></div>
+  </div>
 
 <script>
   // Parse YouTube video ID
@@ -74,6 +93,7 @@
 
   let player, fps = 30, frameDuration = 1/30;
   let duration = 0;
+  let startFrame = null, endFrame = null;
 
   const qs = id => document.getElementById(id);
 
@@ -128,14 +148,41 @@
     else player.playVideo();
   }
 
+  function markStart() {
+    if (!player) return;
+    const frame = Math.floor(player.getCurrentTime() * fps);
+    startFrame = frame;
+    qs("startDisplay").textContent = `${frame} (${(frame/fps).toFixed(3)}s)`;
+    updateDiff();
+  }
+
+  function markEnd() {
+    if (!player) return;
+    const frame = Math.floor(player.getCurrentTime() * fps);
+    endFrame = frame;
+    qs("endDisplay").textContent = `${frame} (${(frame/fps).toFixed(3)}s)`;
+    updateDiff();
+  }
+
+  function updateDiff() {
+    if (startFrame != null && endFrame != null) {
+      const diffFrames = Math.abs(endFrame - startFrame);
+      const diffSeconds = (diffFrames / fps).toFixed(3);
+      qs("diffDisplay").textContent = `${diffFrames} frames (${diffSeconds}s)`;
+    }
+  }
+
+  // Button bindings
   qs("loadBtn").onclick = () => {
     const id = parseYouTubeId(qs("videoInput").value);
     if (!id) return alert("Invalid YouTube link or ID");
     createPlayer(id);
   };
+
   qs("stepBackBtn").onclick = () => stepFrames(-1);
   qs("stepFwdBtn").onclick = () => stepFrames(1);
   qs("playPauseBtn").onclick = togglePlayPause;
+
   qs("setFpsBtn").onclick = () => {
     let v = parseFloat(qs("fpsInput").value) || 30;
     v = Math.max(1, Math.min(60, v));
@@ -143,6 +190,7 @@
     frameDuration = 1/fps;
     updateDisplay();
   };
+
   qs("jumpBtn").onclick = () => {
     const f = parseInt(qs("jumpFrameInput").value);
     if (isNaN(f)) return;
@@ -150,6 +198,17 @@
     player.seekTo(f / fps, true);
     setTimeout(updateDisplay, 200);
   };
+
+  // Extended frame step buttons
+  qs("back5Btn").onclick = () => stepFrames(-5);
+  qs("back10Btn").onclick = () => stepFrames(-10);
+  qs("back15Btn").onclick = () => stepFrames(-15);
+  qs("fwd5Btn").onclick = () => stepFrames(5);
+  qs("fwd10Btn").onclick = () => stepFrames(10);
+  qs("fwd15Btn").onclick = () => stepFrames(15);
+
+  qs("markStartBtn").onclick = markStart;
+  qs("markEndBtn").onclick = markEnd;
 
   // Update loop for time/frame counter
   setInterval(updateDisplay, 250);
