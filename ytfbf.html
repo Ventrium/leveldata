@@ -7,13 +7,14 @@
 <style>
   body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    margin: 14px;
-    color: #111;
-    background: #f8f9fa;
+    margin: 16px;
+    color: #e5e5e5;
+    background: #121212;
   }
 
   h2 {
     margin-bottom: 16px;
+    color: #fff;
   }
 
   #player {
@@ -22,6 +23,55 @@
     background: #000;
     border-radius: 8px;
     margin-bottom: 12px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.6);
+  }
+
+  input, button {
+    font-size: 15px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    outline: none;
+  }
+
+  input {
+    background: #1e1e1e;
+    color: #eee;
+  }
+
+  input::placeholder {
+    color: #777;
+  }
+
+  button {
+    background: #0078ff;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+
+  button:hover {
+    background: #2088ff;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  #markStartBtn {
+    background-color: #d9534f;
+  }
+  #markStartBtn:hover {
+    background-color: #c9302c;
+  }
+
+  #markEndBtn {
+    background-color: #5cb85c;
+  }
+  #markEndBtn:hover {
+    background-color: #449d44;
   }
 
   .row, .controls {
@@ -32,81 +82,28 @@
     margin-bottom: 10px;
   }
 
-  input, button {
-    font-size: 16px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    outline: none;
-  }
-
-  input[type="text"], input[type="number"] {
-    /* keep sizes consistent */
-  }
-
-  button {
-    background: #0078ff;
-    color: white;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  button:active {
-    background-color: #005fcc;
-  }
-
-  /* custom colored Mark buttons */
-  #markStartBtn {
-    background-color: #d9534f; /* red-ish */
-    border: none;
-  }
-  #markStartBtn:hover {
-    background-color: #c9302c;
-  }
-
-  #markEndBtn {
-    background-color: #5cb85c; /* green-ish */
-    border: none;
-  }
-  #markEndBtn:hover {
-    background-color: #449d44;
-  }
-
   .counter {
-    background: #ffffff;
-    /* or lighter shade */
-    padding: 10px 14px;
+    background: #1c1c1c;
+    padding: 12px 16px;
     border-radius: 8px;
     flex-grow: 1;
-    text-align: left;
-    border: 1px solid #ddd;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 10px;
   }
 
   .counter .big {
     font-weight: 700;
     font-size: 18px;
+    color: #fff;
   }
 
   .small {
     font-size: 14px;
-    color: #555;
+    color: #aaa;
   }
 
-  .footer {
-    font-size: 13px;
-    color: #666;
-    margin-top: 10px;
-    line-height: 1.4;
-  }
-
-  input[type="number"] {
-    width: 90px;
-  }
-
-  input[type="text"] {
-    flex: 1;
-    min-width: 180px;
+  strong {
+    color: #fff;
   }
 </style>
 </head>
@@ -122,8 +119,8 @@
 
   <div class="controls">
     <button id="playPauseBtn">▶ Play / ❚❚ Pause</button>
-    <button id="stepBackBtn">◀ -1 Frame</button>
-    <button id="stepFwdBtn">+1 Frame ▶</button>
+    <button id="stepBackBtn">◀ -1</button>
+    <button id="stepFwdBtn">+1 ▶</button>
   </div>
 
   <div class="controls">
@@ -138,7 +135,7 @@
   <div class="controls">
     <input id="fpsInput" type="number" min="1" max="60" value="30" />
     <button id="setFpsBtn">Set FPS</button>
-    <input id="jumpFrameInput" type="number" placeholder="frame #" min="0" />
+    <input id="jumpFrameInput" type="number" placeholder="Frame #" min="0" />
     <button id="jumpBtn">Jump</button>
   </div>
 
@@ -149,8 +146,8 @@
 
   <div class="counter">
     <div class="big" id="frameDisplay">Frame: —</div>
-    <div class="small">Time: <span id="timeDisplay">—</span> s • FPS: <span id="fpsDisplay">30</span></div>
-    <div class="small">Duration: <span id="durationDisplay">—</span> s • State: <span id="stateDisplay">—</span></div>
+    <div class="small">Time: <span id="timeDisplay">—</span> • FPS: <span id="fpsDisplay">30</span></div>
+    <div class="small">Duration: <span id="durationDisplay">—</span> • State: <span id="stateDisplay">—</span></div>
   </div>
 
   <div class="counter">
@@ -160,7 +157,7 @@
   </div>
 
 <script>
-  // (same JavaScript as before—no changes needed to logic)
+  // --- Utilities ---
   function parseYouTubeId(input) {
     if (!input) return null;
     input = input.trim();
@@ -176,11 +173,29 @@
     return idMatch ? idMatch[0] : null;
   }
 
+  function formatTimestamp(seconds) {
+    if (isNaN(seconds)) return "—";
+    const totalMs = Math.floor(seconds * 1000);
+    const ms = totalMs % 1000;
+    const totalSec = Math.floor(totalMs / 1000);
+
+    const secs = totalSec % 60;
+    const totalMin = Math.floor(totalSec / 60);
+    const mins = totalMin % 60;
+    const totalHr = Math.floor(totalMin / 60);
+    const hrs = totalHr % 24;
+    const days = Math.floor(totalHr / 24);
+
+    const pad = (n, z=2) => String(n).padStart(z, "0");
+    return `${pad(days)}:${pad(hrs)}:${pad(mins)}:${pad(secs)}.${pad(ms,3)}`;
+  }
+
+  // --- YouTube API ---
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
 
-  let player, fps = 30, frameDuration = 1/30;
+  let player, fps = 30, frameDuration = 1 / 30;
   let duration = 0;
   let startFrame = null, endFrame = null;
 
@@ -193,13 +208,13 @@
 
   function createPlayer(videoId) {
     if (player) player.destroy();
-    player = new YT.Player('player', {
+    player = new YT.Player("player", {
       videoId,
-      playerVars: { modestbranding:1, rel:0, controls:1 },
+      playerVars: { modestbranding: 1, rel: 0, controls: 1 },
       events: {
         onReady: () => {
           duration = player.getDuration() || 0;
-          qs("durationDisplay").textContent = duration.toFixed(2);
+          qs("durationDisplay").textContent = formatTimestamp(duration);
           qs("stateDisplay").textContent = "Ready";
         },
         onStateChange: (e) => {
@@ -217,7 +232,7 @@
     const t = player.getCurrentTime();
     const frame = Math.floor(t * fps);
     qs("frameDisplay").textContent = `Frame: ${frame}`;
-    qs("timeDisplay").textContent = t.toFixed(4);
+    qs("timeDisplay").textContent = formatTimestamp(t);
     qs("fpsDisplay").textContent = fps;
   }
 
@@ -241,7 +256,7 @@
     if (!player) return;
     const frame = Math.floor(player.getCurrentTime() * fps);
     startFrame = frame;
-    qs("startDisplay").textContent = `${frame} (${(frame/fps).toFixed(3)}s)`;
+    qs("startDisplay").textContent = `${frame} (${formatTimestamp(frame / fps)})`;
     updateDiff();
   }
 
@@ -249,18 +264,19 @@
     if (!player) return;
     const frame = Math.floor(player.getCurrentTime() * fps);
     endFrame = frame;
-    qs("endDisplay").textContent = `${frame} (${(frame/fps).toFixed(3)}s)`;
+    qs("endDisplay").textContent = `${frame} (${formatTimestamp(frame / fps)})`;
     updateDiff();
   }
 
   function updateDiff() {
     if (startFrame != null && endFrame != null) {
       const diffFrames = Math.abs(endFrame - startFrame);
-      const diffSeconds = (diffFrames / fps).toFixed(3);
-      qs("diffDisplay").textContent = `${diffFrames} frames (${diffSeconds}s)`;
+      const diffSeconds = diffFrames / fps;
+      qs("diffDisplay").textContent = `${diffFrames} frames (${formatTimestamp(diffSeconds)})`;
     }
   }
 
+  // --- Bind UI ---
   qs("loadBtn").onclick = () => {
     const id = parseYouTubeId(qs("videoInput").value);
     if (!id) return alert("Invalid YouTube link or ID");
@@ -275,7 +291,7 @@
     let v = parseFloat(qs("fpsInput").value) || 30;
     v = Math.max(1, Math.min(60, v));
     fps = v;
-    frameDuration = 1/fps;
+    frameDuration = 1 / fps;
     updateDisplay();
   };
 
